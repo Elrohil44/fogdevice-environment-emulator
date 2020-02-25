@@ -1,0 +1,10 @@
+{
+  "name": "EnvironmentEmulator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Wiesław Stanek <wieslaw.stanek@spinney.io>",
+  "license": "MIT",
+  "dependencies": {
+    "paho-mqtt": "^1.1.0"
+  }
+}
