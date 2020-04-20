@@ -61,7 +61,13 @@ const validateCommand = ({ command, args }) => {
 };
 
 
-const createEnvironment = ({ epochDuration = 1000 } = {}) => {
+const createEnvironment = ({
+  epochDuration = 1000,
+  mqttClient,
+  clientId,
+  sensorEmulators = [],
+} = {}) => {
+  const EVENTS_TOPIC = `fogdevicesplatform/${clientId}/EVENTS`;
   const actualState = new Array(WIDTH);
   let i = actualState.length;
   while (i--) {
@@ -83,6 +89,8 @@ const createEnvironment = ({ epochDuration = 1000 } = {}) => {
 
   const intervalQueue = [];
   const oneshotQueue = [];
+  const eventOnceListeners = {};
+  const eventListeners = {};
 
   const handleCommand = ([command, args]) => {
     switch (command) {
@@ -133,7 +141,6 @@ const createEnvironment = ({ epochDuration = 1000 } = {}) => {
       ...state.environment
         .map(row => [...row])
     ];
-    console.log(`EPOCH: ${state.epoch} - ${Date.now()}`);
     let w = WIDTH;
     while (w--) {
       let h = HEIGHT;
@@ -172,6 +179,16 @@ const createEnvironment = ({ epochDuration = 1000 } = {}) => {
         handleCommand(queue[i]);
       }
     }
+    sensorEmulators.forEach((emulator) => {
+      const { x, y } = emulator;
+
+      const [temperature, humidity] = state.environment[x][y];
+      const pressure = state.pressure;
+
+      emulator.setTemperature(temperature);
+      emulator.setHumidity(humidity);
+      emulator.setPressure(pressure);
+    });
   };
 
   return {
@@ -191,9 +208,39 @@ const createEnvironment = ({ epochDuration = 1000 } = {}) => {
       }
       oneshotQueue[interval].unshift([command, args]);
     },
+    on(event, { command, args }) {
+      validateCommand({ command, args });
+      if (!eventListeners[event]) {
+        eventListeners[event] = [];
+      }
+      eventListeners[event].unshift([command, args]);
+    },
+    once(event, { command, args }) {
+      validateCommand({ command, args });
+      if (!eventOnceListeners[event]) {
+        eventOnceListeners[event] = [];
+      }
+      eventOnceListeners[event].unshift([command, args]);
+    },
     execute() {
       if (!state.executing) {
         state.executing = true;
+        mqttClient.onConnect = () => {
+          mqttClient.subscribe(EVENTS_TOPIC);
+        };
+        mqttClient.onMessageArrived = ({ topic, payload }) => {
+          if (topic === EVENTS_TOPIC) {
+            const event = payload;
+            if (eventOnceListeners[event] && eventOnceListeners[event].length) {
+              eventOnceListeners[event].forEach(handleCommand);
+              eventOnceListeners[event] = [];
+            }
+            if (eventListeners[event] && eventListeners[event].length) {
+              eventListeners[event].forEach(handleCommand);
+            }
+          }
+        };
+        mqttClient.connect();
         iterate();
       }
     }
