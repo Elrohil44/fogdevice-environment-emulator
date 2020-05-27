@@ -1,12 +1,9 @@
-const PahoMQTT = require('paho-mqtt');
+const MQTT = require('mqtt');
 
 class MQTTClient {
   constructor({ brokerUrl, clientId }) {
     this.brokerUrl = brokerUrl;
     this.clientId = clientId;
-    this.client = new PahoMQTT.Client(this.brokerUrl, this.clientId);
-    this.client.onMessageArrived = this._onMessageArrived;
-    this.client.onConnectionLost = this._onConnectionLost;
   }
 
   _onConnect = () => {
@@ -15,23 +12,19 @@ class MQTTClient {
     }
   };
 
-  _onMessageArrived = (message) => {
+  _onMessageArrived = (topic, message) => {
     if (typeof this.onMessageArrived === 'function') {
       this.onMessageArrived({
-        topic: message.destinationName,
-        payload: message.payloadString,
+        topic,
+        payload: message,
       });
     }
   };
 
-  _onConnectionLost = () => {
-    if (typeof this.onConnectionLost === 'function') {
-      this.onConnectionLost();
-    }
-  };
-
   connect = () => {
-    this.client.connect({ onSuccess: this._onConnect })
+    this.client = MQTT.connect(this.brokerUrl, { clientId: this.clientId });
+    this.client.on('connect', this._onConnect);
+    this.client.on('message', this._onMessageArrived);
   };
 
   subscribe = (topic) => {
@@ -39,9 +32,7 @@ class MQTTClient {
   };
 
   sendMessage = (topic, message) => {
-    const mqttMessage = new PahoMQTT.Message(message);
-    message.destinationName = topic;
-    this.client.send(mqttMessage);
+    this.client.publish(topic, message);
   }
 }
 

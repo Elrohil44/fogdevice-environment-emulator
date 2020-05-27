@@ -1,13 +1,19 @@
 const WIDTH = 250;
 const HEIGHT = 250;
 
-const COMMANDS = [
-  'PLACE_HEATER',
-  'REMOVE_HEATER',
-  'SET_TEMPERATURE',
-  'SET_HUMIDITY',
-  'SET_PRESSURE',
-];
+const COMMANDS = {
+  'PLACE_HEATER': 'PLACE_HEATER',
+  'REMOVE_HEATER': 'REMOVE_HEATER',
+  'SET_TEMPERATURE': 'SET_TEMPERATURE',
+  'SET_HUMIDITY': 'SET_HUMIDITY',
+  'SET_PRESSURE': 'SET_PRESSURE',
+};
+const TRIGGERS = {
+  'ONCE': 'ONCE',
+  'ON': 'ON',
+  'EVERY': 'EVERY',
+  'AFTER': 'AFTER',
+};
 
 const validateCommand = ({ command, args }) => {
   switch (command) {
@@ -179,15 +185,17 @@ const createEnvironment = ({
         handleCommand(queue[i]);
       }
     }
-    sensorEmulators.forEach((emulator) => {
-      const { x, y } = emulator;
+    sensorEmulators.forEach((sensorEmulator) => {
+      const { x, y, emulator } = sensorEmulator;
 
-      const [temperature, humidity] = state.environment[x][y];
-      const pressure = state.pressure;
+      if (state.environment[x] && state.environment[x][y]) {
+        const [temperature, humidity] = state.environment[x][y];
+        const pressure = state.pressure;
 
-      emulator.setTemperature(temperature);
-      emulator.setHumidity(humidity);
-      emulator.setPressure(pressure);
+        emulator.setTemperature(temperature);
+        emulator.setHumidity(humidity);
+        emulator.setPressure(pressure);
+      }
     });
   };
 
@@ -249,4 +257,6 @@ const createEnvironment = ({
 
 module.exports = {
   createEnvironment,
+  COMMANDS,
+  TRIGGERS,
 };

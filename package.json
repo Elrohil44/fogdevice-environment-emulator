@@ -9,6 +9,6 @@
     "echo-version": "echo $npm_package_version"
   },
   "dependencies": {
-    "paho-mqtt": "^1.1.0"
+    "mqtt": "^4.1.0"
   }
 }
