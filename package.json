@@ -4,6 +4,10 @@
   "main": "index.js",
   "author": "Wiesław Stanek <wieslaw.stanek@spinney.io>",
   "license": "MIT",
+  "scripts": {
+    "start": "node ./src/index.js",
+    "echo-version": "echo $npm_package_version"
+  },
   "dependencies": {
     "paho-mqtt": "^1.1.0"
   }

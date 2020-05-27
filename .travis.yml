@@ -1,0 +1,16 @@
+language: node_js
+node_js:
+  - 12
+services:
+  - docker
+jobs:
+  include:
+    - stage: build
+      script: bash ./build.sh
+    - stage: release
+      script: bash ./build.sh && bash ./release.sh
+
+stages:
+  - build
+  - name: release
+    if: type = push AND branch = master
