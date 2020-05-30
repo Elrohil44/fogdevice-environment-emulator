@@ -1,3 +1,9 @@
+const fs = require('fs');
+
+const {
+  DATA_DIR = '/app/emulation-data'
+} = process.env;
+
 const WIDTH = 250;
 const HEIGHT = 250;
 
@@ -14,6 +20,47 @@ const TRIGGERS = {
   'EVERY': 'EVERY',
   'AFTER': 'AFTER',
 };
+
+const saveFile = async ({
+  path,
+  content,
+  flags,
+}) => {
+  const stream = fs.createWriteStream(path, { flags });
+  const promise = new Promise((resolve, reject) => {
+    stream.on('close', resolve);
+    stream.on('error', reject);
+  });
+  stream.end(content);
+  await promise;
+};
+
+const dumpEnvironment = async ({
+  _id, epoch, state, pressure, time, width, height,
+}) => {
+  await saveFile({
+    path: `${DATA_DIR}/${_id}_pressure.csv`,
+    content: `${epoch},${time},${pressure}\n`,
+    flags: 'a'
+  });
+
+  const dataContent = new Array(width * height);
+  let ndx = dataContent.length - 1;
+  let i = width;
+  while (i--) {
+    let j = height;
+    while (j--) {
+      const [temp, humidity] = state[i][j];
+      dataContent[ndx] = `${epoch},${time},${i},${j},${temp},${humidity}`;
+      ndx--;
+    }
+  }
+
+  await saveFile({
+    path: `${DATA_DIR}/${_id}_${epoch}_data.csv`,
+    content: dataContent.join('\n'),
+  });
+}
 
 const validateCommand = ({ command, args }) => {
   switch (command) {
@@ -144,11 +191,20 @@ const createEnvironment = ({
 
   const iterate = () => {
     setTimeout(iterate, epochDuration);
-    state.epoch += 1;
     state.prevState = [
       ...state.environment
         .map(row => [...row])
     ];
+    dumpEnvironment({
+      epoch: state.epoch,
+      state: state.prevState,
+      pressure: state.pressure,
+      _id: clientId,
+      time: Date.now(),
+      width,
+      height,
+    }).catch(() => {});
+    state.epoch += 1;
     let w = width;
     while (w--) {
       let h = height;
