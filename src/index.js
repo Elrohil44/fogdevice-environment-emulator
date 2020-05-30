@@ -13,14 +13,27 @@ const mqttClient = new MQTTClient({
   clientId: CLIENT_ID,
 });
 
-const { _id, emulators, commands } = config;
+const {
+  _id,
+  emulators,
+  commands,
+  epochDuration,
+  width,
+  height,
+} = config;
 
-const sensorEmulators = (emulators || []).map(({ emulator, x, y }) => ({
-  x, y, emulator: new BME280Emulator({ mqttClient, emulatorId: `${_id}_${emulator}` })
+const sensorEmulators = (emulators || []).map(({ emulator, x, y, maxUpdateInterval }) => ({
+  x, y, emulator: new BME280Emulator({
+    mqttClient,
+    emulatorId: `${_id}_${emulator}`,
+    maxUpdateInterval,
+  }),
 }))
 
 const environment = createEnvironment({
-  epochDuration: 100,
+  epochDuration: epochDuration > 0 ? epochDuration : 100,
+  width: width > 0 ? width : 100,
+  height: height > 0 ? height : 100,
   mqttClient,
   clientId: CLIENT_ID,
   sensorEmulators,

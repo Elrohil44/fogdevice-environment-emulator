@@ -72,12 +72,14 @@ const createEnvironment = ({
   mqttClient,
   clientId,
   sensorEmulators = [],
+  width = WIDTH,
+  height = HEIGHT,
 } = {}) => {
   const EVENTS_TOPIC = `fogdevicesplatform/${clientId}/EVENTS`;
-  const actualState = new Array(WIDTH);
+  const actualState = new Array(width);
   let i = actualState.length;
   while (i--) {
-    actualState[i] = new Array(HEIGHT);
+    actualState[i] = new Array(height);
     let j = actualState[i].length;
     while (j--) {
       actualState[i][j] = [20, 40];
@@ -147,9 +149,9 @@ const createEnvironment = ({
       ...state.environment
         .map(row => [...row])
     ];
-    let w = WIDTH;
+    let w = width;
     while (w--) {
-      let h = HEIGHT;
+      let h = height;
       while (h--) {
         const beginW = w ? w - 1 : w;
         const endW = w + 2;
@@ -164,7 +166,7 @@ const createEnvironment = ({
     let i = state.heaters.length;
     while (i--) {
       const { x, y, temperature } = state.heaters[i];
-      if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
+      if (x >= 0 && x < width && y >= 0 && y < height) {
         state.environment[x][y][0] = Math.max(temperature, state.environment[x][y][0]);
       }
     }
