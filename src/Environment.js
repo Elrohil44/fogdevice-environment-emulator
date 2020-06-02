@@ -195,15 +195,6 @@ const createEnvironment = ({
       ...state.environment
         .map(row => [...row])
     ];
-    dumpEnvironment({
-      epoch: state.epoch,
-      state: state.prevState,
-      pressure: state.pressure,
-      _id: clientId,
-      time: Date.now(),
-      width,
-      height,
-    }).catch(() => {});
     state.epoch += 1;
     let w = width;
     while (w--) {
@@ -255,6 +246,18 @@ const createEnvironment = ({
         emulator.setPressure(pressure);
       }
     });
+    dumpEnvironment({
+      epoch: state.epoch,
+      state: [
+        ...state.environment
+          .map(row => [...row])
+      ],
+      pressure: state.pressure,
+      _id: clientId,
+      time: Date.now(),
+      width,
+      height,
+    }).catch(() => {});
   };
 
   return {
