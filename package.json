@@ -1,6 +1,6 @@
 {
   "name": "EnvironmentEmulator",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "main": "index.js",
   "author": "Wiesław Stanek <wieslaw.stanek@spinney.io>",
   "license": "MIT",
