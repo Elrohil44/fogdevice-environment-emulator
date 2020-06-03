@@ -175,8 +175,8 @@ const createEnvironment = ({
         const toX = Math.max(from.x, to.x);
         const toY = Math.max(from.y, to.y);
         const rows = state.environment
-          .slice(fromX, toX - fromX + 1)
-          .map(row => row.slice(fromY, toY - fromY + 1))
+          .slice(fromX, toX + 1)
+          .map(row => row.slice(fromY, toY + 1))
           .flat();
         const register = command === 'SET_TEMPERATURE' ? 0 : 1;
         let i = rows.length;
